@@ -1,24 +1,592 @@
 <!DOCTYPE html>
-<html>
-<head><title>Delhi High Court Case Fetcher</title></head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Court Data Fetcher & Document Viewer</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --secondary: #1e40af;
+            --bg: #f8fafc;
+            --panel: #ffffff;
+            --border: #e5e7eb;
+            --text: #111827;
+            --muted: #6b7280;
+            --success-bg: #dcfce7;
+            --success-text: #166534;
+            --error-bg: #fef2f2;
+            --error-text: #b91c1c;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background: var(--panel);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 0;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-title h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .court-pill,
+        .status-pill,
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .court-pill {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+        .status-pill {
+            gap: 8px;
+            background: #ecfdf3;
+            color: #166534;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: #22c55e;
+        }
+
+        main {
+            padding: 32px 0;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .search-panel {
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .search-panel h2,
+        .card-title {
+            margin: 0 0 24px;
+            font-size: 20px;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 24px;
+            align-items: start;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .field select,
+        .field input {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 14px;
+            background: #fff;
+        }
+
+        .captcha-panel {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .captcha-box {
+            flex: 1;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .captcha-code {
+            margin-bottom: 12px;
+            font-size: 24px;
+            font-family: "Courier New", monospace;
+            letter-spacing: 0.12em;
+        }
+
+        .captcha-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .button,
+        .icon-button {
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .button {
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .button-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .button-secondary,
+        .icon-button {
+            background: #eef2ff;
+            color: var(--secondary);
+        }
+
+        .icon-button {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-size: 14px;
+        }
+
+        .message-error {
+            background: var(--error-bg);
+            color: var(--error-text);
+        }
+
+        .message-info {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            padding: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .badge-active {
+            background: var(--success-bg);
+            color: var(--success-text);
+        }
+
+        .detail-stack,
+        .activity-stack,
+        .document-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .detail-item p,
+        .activity-item p,
+        .document-card p {
+            margin: 0;
+        }
+
+        .detail-label {
+            margin-bottom: 6px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .detail-value {
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .activity-dot {
+            width: 8px;
+            height: 8px;
+            margin-top: 6px;
+            border-radius: 999px;
+            background: var(--primary);
+        }
+
+        .activity-title {
+            margin-bottom: 4px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .activity-date {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .document-section {
+            padding: 24px;
+        }
+
+        .document-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .document-card {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .document-card h4 {
+            margin: 0 0 10px;
+            font-size: 17px;
+        }
+
+        .document-card p {
+            margin-bottom: 16px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .raw-result {
+            overflow-x: auto;
+        }
+
+        .raw-result table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .raw-result th,
+        .raw-result td {
+            border: 1px solid var(--border);
+            padding: 10px;
+            text-align: left;
+            vertical-align: top;
+            font-size: 14px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--muted);
+            padding: 48px 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .search-grid,
+            .results-grid,
+            .document-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 0 16px;
+            }
+
+            .header-row,
+            .captcha-panel,
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
 <body>
-    <h1>Delhi High Court Case Status</h1>
-    <p><strong>Browser Status:</strong> Running</p>
-    <form action="/submit" method="POST">
-        <label>Case Type:</label>
-        <input type="text" name="case_type" required><br>
-        
-        <label>Case Number:</label>
-        <input type="text" name="case_number" required><br>
-        
-        <label>Case Year:</label>
-        <input type="text" name="case_year" required><br>
-        
-        <p><strong>Captcha Shown:</strong> {{ captcha }}</p>
-        <label>Enter Captcha:</label>
-        <input type="text" name="captcha_entered" required><br>
-        
-        <button type="submit">Submit</button>
-    </form>
+    <header>
+        <div class="container header-row">
+            <div class="header-title">
+                <h1>Court Data Fetcher</h1>
+                <span class="court-pill">Delhi High Court</span>
+            </div>
+            <div class="status-pill">
+                <span class="status-dot"></span>
+                <span>Browser: Running</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <section class="panel search-panel">
+                <h2>Search Case Information</h2>
+
+                {% if error %}
+                <div class="message message-error">{{ error }}</div>
+                {% endif %}
+
+                {% if raw_html and not data %}
+                <div class="message message-info">
+                    The court site returned a result block, but the structured parser could not map every field. Showing the raw result section below.
+                </div>
+                {% endif %}
+
+                <form action="/submit" method="POST" class="search-grid">
+                    <div class="field">
+                        <label for="case_type">Case Type</label>
+                        <select name="case_type" id="case_type" required>
+                            <option value="">Select Case Type</option>
+                            {% for case_type in case_types %}
+                            <option value="{{ case_type }}" {% if form_data.get('case_type') == case_type %}selected{% endif %}>{{ case_type }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="case_number">Case Number</label>
+                        <input type="text" name="case_number" id="case_number" value="{{ form_data.get('case_number', '') }}" placeholder="Enter case number" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="case_year">Filing Year</label>
+                        <select name="case_year" id="case_year" required>
+                            <option value="">Select Year</option>
+                            {% for year in years %}
+                            <option value="{{ year }}" {% if form_data.get('case_year') == year|string %}selected{% endif %}>{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="captcha_entered">Verification</label>
+                        <div class="captcha-panel">
+                            <div class="captcha-box">
+                                <div class="captcha-code" id="captcha-text">{{ captcha or "Loading..." }}</div>
+                                <input type="text" name="captcha_entered" id="captcha_entered" placeholder="Enter the code above" required>
+                            </div>
+                            <div class="captcha-actions">
+                                <button type="button" class="icon-button" onclick="reloadCaptcha()" aria-label="Reload captcha">&#8635;</button>
+                                <button type="submit" class="button button-primary">Search Case</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            {% if data %}
+            <section class="results-grid">
+                <div class="panel card">
+                    <div class="card-header">
+                        <h3>Case Details</h3>
+                        <span class="badge badge-active">{{ data.status }}</span>
+                    </div>
+
+                    <div class="detail-stack">
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <p class="detail-label">Case Number</p>
+                                <p class="detail-value">{{ data.case_no }}</p>
+                            </div>
+                            <div class="detail-item">
+                                <p class="detail-label">Court No</p>
+                                <p class="detail-value">{{ data.court_no or "N/A" }}</p>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <p class="detail-label">Petitioner</p>
+                            <p class="detail-value">{{ data.petitioner }}</p>
+                        </div>
+                        <div class="detail-item">
+                            <p class="detail-label">Respondent</p>
+                            <p class="detail-value">{{ data.respondent }}</p>
+                        </div>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <p class="detail-label">Next Hearing</p>
+                                <p class="detail-value">{{ data.next_date or "N/A" }}</p>
+                            </div>
+                            <div class="detail-item">
+                                <p class="detail-label">Last Date</p>
+                                <p class="detail-value">{{ data.last_date or "N/A" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel card">
+                    <div class="card-header">
+                        <h3>Recent Activity</h3>
+                    </div>
+                    <div class="activity-stack">
+                        <div class="activity-item">
+                            <span class="activity-dot"></span>
+                            <div>
+                                <p class="activity-title">Case lookup completed</p>
+                                <p class="activity-date">Current request</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <span class="activity-dot"></span>
+                            <div>
+                                <p class="activity-title">Case type used</p>
+                                <p class="activity-date">{{ form_data.get('case_type', 'N/A') }}</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <span class="activity-dot"></span>
+                            <div>
+                                <p class="activity-title">Case number queried</p>
+                                <p class="activity-date">{{ form_data.get('case_number', 'N/A') }}/{{ form_data.get('case_year', 'N/A') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel document-section">
+                <div class="card-header">
+                    <h3>Orders & Judgments</h3>
+                </div>
+                <div class="document-grid">
+                    <article class="document-card">
+                        <h4>Orders</h4>
+                        <p>Open the orders link returned by the Delhi High Court site for this case.</p>
+                        <div class="document-actions">
+                            {% if data.orders_link %}
+                            <a class="button button-primary" href="{{ data.orders_link }}" target="_blank" rel="noopener noreferrer">Open Orders</a>
+                            {% else %}
+                            <span class="detail-label">No orders link returned.</span>
+                            {% endif %}
+                        </div>
+                    </article>
+                    <article class="document-card">
+                        <h4>Judgment</h4>
+                        <p>Open the judgment link returned by the Delhi High Court site when available.</p>
+                        <div class="document-actions">
+                            {% if data.judgment_link %}
+                            <a class="button button-secondary" href="{{ data.judgment_link }}" target="_blank" rel="noopener noreferrer">Open Judgment</a>
+                            {% else %}
+                            <span class="detail-label">No judgment link returned.</span>
+                            {% endif %}
+                        </div>
+                    </article>
+                </div>
+            </section>
+            {% elif raw_html %}
+            <section class="panel card">
+                <div class="card-header">
+                    <h3>Case Result</h3>
+                    <span class="badge badge-active">Raw Court Output</span>
+                </div>
+                <div class="raw-result">
+                    {{ raw_html|safe }}
+                </div>
+            </section>
+            {% else %}
+            <section class="panel empty-state">
+                <h3>No result loaded yet</h3>
+                <p>Search a case above to load live data from the Delhi High Court site in this dashboard.</p>
+            </section>
+            {% endif %}
+        </div>
+    </main>
+
+    <script>
+        async function reloadCaptcha() {
+            const captchaText = document.getElementById("captcha-text");
+            captchaText.textContent = "Loading...";
+
+            try {
+                const response = await fetch("/reload_captcha");
+                const data = await response.text();
+
+                if (data.startsWith("ERROR:")) {
+                    alert(data);
+                    captchaText.textContent = "Unavailable";
+                    return;
+                }
+
+                captchaText.textContent = data;
+            } catch (error) {
+                alert("Failed to reload captcha.");
+                captchaText.textContent = "Unavailable";
+            }
+        }
+    </script>
 </body>
 </html>
