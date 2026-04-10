@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Court Data Fetcher & Document Viewer</title>
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<script>
+tailwind.config = {
+theme: {
+extend: {
+colors: {
+primary: '#3b82f6',
+secondary: '#1e40af'
+},
+borderRadius: {
+'none': '0px',
+'sm': '4px',
+DEFAULT: '8px',
+'md': '12px',
+'lg': '16px',
+'xl': '20px',
+'2xl': '24px',
+'3xl': '32px',
+'full': '9999px',
+'button': '8px'
+}
+}
+}
+}
+</script>
+<style>
+:where([class^="ri-"])::before {
+content: "\f3c2";
+}
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<!-- Header -->
+<header class="bg-white shadow-sm border-b">
+<div class="max-w-7xl mx-auto px-6 py-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-4">
+<h1 class="text-2xl font-bold text-gray-900">Court Data Fetcher</h1>
+<span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Delhi High Court</span>
+</div>
+<div class="flex items-center space-x-4">
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900">
+<i class="ri-notification-line"></i>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900">
+<i class="ri-settings-line"></i>
+</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="max-w-7xl mx-auto px-6 py-8">
+<!-- Search Form Section -->
+<div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+<h2 class="text-lg font-semibold text-gray-900 mb-6">Search Case Information</h2>
+<form class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">Case Type</label>
+<div class="relative">
+<button type="button" class="w-full bg-white border border-gray-300 rounded px-4 py-2 text-left text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onclick="toggleDropdown('caseTypeDropdown')">
+<span id="caseTypeSelected">Select Case Type</span>
+<div class="w-4 h-4 flex items-center justify-center absolute right-3 top-1/2 transform -translate-y-1/2">
+<i class="ri-arrow-down-s-line text-gray-400"></i>
+</div>
+</button>
+<div id="caseTypeDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded mt-1 shadow-lg hidden">
+<div class="py-1">
+<button type="button" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50" onclick="selectOption('caseTypeSelected', 'Civil Appeal', 'caseTypeDropdown')">Civil Appeal</button>
+<button type="button" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50" onclick="selectOption('caseTypeSelected', 'Criminal Appeal', 'caseTypeDropdown')">Criminal Appeal</button>
+<button type="button" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50" onclick="selectOption('caseTypeSelected', 'Writ Petition', 'caseTypeDropdown')">Writ Petition</button>
+<button type="button" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50" onclick="selectOption('caseTypeSelected', 'Company Petition', 'caseTypeDropdown')">Company Petition</button>
+</div>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">Case Number</label>
+<input type="text" placeholder="Enter case number" class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">Filing Year</label>
+<div class="relative">
+<button type="button" class="w-full bg-white border border-gray-300 rounded px-4 py-2 text-left text-sm focus:ring-2 focus:ring-primary focus:border-transparent" onclick="toggleDropdown('yearDropdown')">
+<span id="yearSelected">Select Year</span>
+<div class="w-4 h-4 flex items-center justify-center absolute right-3 top-1/2 transform -translate-y-1/2">
+<i class="ri-arrow-down-s-line text-gray-400"></i>
+</div>
+</button>
+<div id="yearDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded mt-1 shadow-lg hidden max-h-48 overflow-y-auto">
+<div class="py-1">
+<button type="button" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50" onclick="selectOption('yearSelected', '2024', 'yearDropdown')">2024</button>
+<button type="button" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50" onclick="selectOption('yearSelected', '2023', 'yearDropdown')">2023</button>
+<button type="button" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50" onclick="selectOption('yearSelected', '2022', 'yearDropdown')">2022</button>
+<button type="button" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50" onclick="selectOption('yearSelected', '2021', 'yearDropdown')">2021</button>
+<button type="button" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50" onclick="selectOption('yearSelected', '2020', 'yearDropdown')">2020</button>
+</div>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">Verification</label>
+<div class="flex items-center space-x-4">
+<div class="flex-1 bg-gray-50 border border-gray-200 rounded p-4">
+<div class="flex items-center justify-between mb-3">
+<div id="captchaCode" class="font-mono text-xl tracking-wider text-gray-800 select-none" style="font-family: 'Courier New', monospace;"></div>
+<button type="button" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded" onclick="refreshCaptcha()">
+<i class="ri-refresh-line"></i>
+</button>
+</div>
+<input type="text" id="captchaInput" placeholder="Enter the code above" class="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+</div>
+<button type="submit" class="bg-primary text-white px-6 py-2 rounded !rounded-button font-medium hover:bg-blue-700 transition-colors whitespace-nowrap" onclick="validateForm(event)">
+Search Case
+</button>
+</div>
+</div>
+</form>
+</div>
+<!-- Results Dashboard Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+<!-- Case Details -->
+<div class="lg:col-span-2 bg-white rounded-lg shadow-sm border p-6">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-semibold text-gray-900">Case Details</h3>
+<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Active</span>
+</div>
+<div class="space-y-4">
+<div class="grid grid-cols-2 gap-4">
+<div>
+<p class="text-sm text-gray-600">Case Number</p>
+<p class="font-medium text-gray-900">CA/2024/1247</p>
+</div>
+<div>
+<p class="text-sm text-gray-600">Filing Date</p>
+<p class="font-medium text-gray-900">March 15, 2024</p>
+</div>
+</div>
+<div>
+<p class="text-sm text-gray-600">Petitioner</p>
+<p class="font-medium text-gray-900">Rajesh Kumar Sharma vs State of Delhi</p>
+</div>
+<div>
+<p class="text-sm text-gray-600">Respondent</p>
+<p class="font-medium text-gray-900">State of Delhi & Anr.</p>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<p class="text-sm text-gray-600">Next Hearing</p>
+<p class="font-medium text-gray-900">August 22, 2024</p>
+</div>
+<div>
+<p class="text-sm text-gray-600">Judge</p>
+<p class="font-medium text-gray-900">Hon'ble Justice A.K. Mendiratta</p>
+</div>
+</div>
+<div>
+<p class="text-sm text-gray-600">Case Summary</p>
+<p class="text-gray-900 text-sm leading-relaxed">This case involves a civil appeal challenging the order passed by the Additional District Judge regarding property dispute. The petitioner seeks relief against the respondent's claim over the disputed property located in New Delhi.</p>
+</div>
+</div>
+</div>
+<!-- Recent Activity -->
+<div class="bg-white rounded-lg shadow-sm border p-6">
+<h3 class="text-lg font-semibold text-gray-900 mb-6">Recent Activity</h3>
+<div class="space-y-4">
+<div class="flex items-start space-x-3">
+<div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+<div>
+<p class="text-sm font-medium text-gray-900">Order uploaded</p>
+<p class="text-xs text-gray-600">August 10, 2024</p>
+</div>
+</div>
+<div class="flex items-start space-x-3">
+<div class="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+<div>
+<p class="text-sm font-medium text-gray-900">Hearing scheduled</p>
+<p class="text-xs text-gray-600">August 5, 2024</p>
+</div>
+</div>
+<div class="flex items-start space-x-3">
+<div class="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
+<div>
+<p class="text-sm font-medium text-gray-900">Document filed</p>
+<p class="text-xs text-gray-600">July 28, 2024</p>
+</div>
+</div>
+<div class="flex items-start space-x-3">
+<div class="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+<div>
+<p class="text-sm font-medium text-gray-900">Case registered</p>
+<p class="text-xs text-gray-600">March 15, 2024</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Orders and Judgments -->
+<div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+<h3 class="text-lg font-semibold text-gray-900 mb-6">Orders & Judgments</h3>
+<div class="overflow-x-auto">
+<table class="w-full">
+<thead>
+<tr class="border-b border-gray-200">
+<th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Date</th>
+<th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Type</th>
+<th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Description</th>
+<th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Status</th>
+<th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-200">
+<tr class="hover:bg-gray-50">
+<td class="py-4 px-4 text-sm text-gray-900">Aug 10, 2024</td>
+<td class="py-4 px-4">
+<span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Order</span>
+</td>
+<td class="py-4 px-4 text-sm text-gray-900">Interim order on stay application</td>
+<td class="py-4 px-4">
+<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Available</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex space-x-2">
+<button class="w-8 h-8 flex items-center justify-center text-primary hover:bg-blue-50 rounded" onclick="viewDocument('order-aug-10-2024.pdf')">
+<i class="ri-eye-line"></i>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 rounded">
+<i class="ri-download-line"></i>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-gray-50">
+<td class="py-4 px-4 text-sm text-gray-900">Jul 28, 2024</td>
+<td class="py-4 px-4">
+<span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">Judgment</span>
+</td>
+<td class="py-4 px-4 text-sm text-gray-900">Final judgment on main petition</td>
+<td class="py-4 px-4">
+<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Available</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex space-x-2">
+<button class="w-8 h-8 flex items-center justify-center text-primary hover:bg-blue-50 rounded" onclick="viewDocument('judgment-jul-28-2024.pdf')">
+<i class="ri-eye-line"></i>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 rounded">
+<i class="ri-download-line"></i>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-gray-50">
+<td class="py-4 px-4 text-sm text-gray-900">Jun 15, 2024</td>
+<td class="py-4 px-4">
+<span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Notice</span>
+</td>
+<td class="py-4 px-4 text-sm text-gray-900">Notice to respondent</td>
+<td class="py-4 px-4">
+<span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">Served</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex space-x-2">
+<button class="w-8 h-8 flex items-center justify-center text-primary hover:bg-blue-50 rounded" onclick="viewDocument('notice-jun-15-2024.pdf')">
+<i class="ri-eye-line"></i>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 rounded">
+<i class="ri-download-line"></i>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Document Viewer Section -->
+<div id="documentViewer" class="bg-white rounded-lg shadow-sm border hidden">
+<!-- Viewer Header -->
+<div class="border-b p-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-4">
+<h3 class="text-lg font-semibold text-gray-900" id="documentTitle">Document Viewer</h3>
+<span class="text-sm text-gray-500" id="documentInfo">Page 1 of 12</span>
+</div>
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 rounded" onclick="closeViewer()">
+<i class="ri-close-line"></i>
+</button>
+</div>
+</div>
+<!-- Viewer Toolbar -->
+<div class="border-b p-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-4">
+<!-- Zoom Controls -->
+<div class="flex items-center space-x-2">
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded" onclick="zoomOut()">
+<i class="ri-subtract-line"></i>
+</button>
+<span class="text-sm text-gray-700 min-w-12 text-center" id="zoomLevel">100%</span>
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded" onclick="zoomIn()">
+<i class="ri-add-line"></i>
+</button>
+</div>
+<!-- Fit Controls -->
+<div class="flex items-center space-x-2">
+<button class="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded whitespace-nowrap" onclick="fitToWidth()">Fit Width</button>
+<button class="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded whitespace-nowrap" onclick="fitToPage()">Fit Page</button>
+</div>
+<!-- Page Navigation -->
+<div class="flex items-center space-x-2">
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded" onclick="previousPage()">
+<i class="ri-arrow-left-line"></i>
+</button>
+<input type="number" value="1" min="1" max="12" class="w-16 text-sm text-center border border-gray-300 rounded px-2 py-1" id="pageInput" onchange="goToPage()">
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded" onclick="nextPage()">
+<i class="ri-arrow-right-line"></i>
+</button>
+</div>
+</div>
+<div class="flex items-center space-x-2">
+<!-- Rotation Controls -->
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded" onclick="rotateLeft()">
+<i class="ri-rotate-lock-line"></i>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded" onclick="rotateRight()">
+<i class="ri-rotate-lock-fill"></i>
+</button>
+<!-- Action Buttons -->
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded">
+<i class="ri-search-line"></i>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded">
+<i class="ri-printer-line"></i>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded">
+<i class="ri-download-line"></i>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded">
+<i class="ri-share-line"></i>
+</button>
+</div>
+</div>
+</div>
+<!-- Viewer Content -->
+<div class="flex h-[800px]">
+<!-- Thumbnail Sidebar -->
+<div class="w-48 border-r bg-gray-50 p-4 overflow-y-auto" id="thumbnailSidebar">
+<h4 class="text-sm font-medium text-gray-700 mb-4">Pages</h4>
+<div class="space-y-2">
+<div class="border-2 border-primary bg-white rounded p-2 cursor-pointer">
+<div class="aspect-[3/4] bg-gray-200 rounded mb-1"></div>
+<p class="text-xs text-center text-gray-600">Page 1</p>
+</div>
+<div class="border border-gray-300 bg-white rounded p-2 cursor-pointer hover:border-gray-400">
+<div class="aspect-[3/4] bg-gray-200 rounded mb-1"></div>
+<p class="text-xs text-center text-gray-600">Page 2</p>
+</div>
+<div class="border border-gray-300 bg-white rounded p-2 cursor-pointer hover:border-gray-400">
+<div class="aspect-[3/4] bg-gray-200 rounded mb-1"></div>
+<p class="text-xs text-center text-gray-600">Page 3</p>
+</div>
+<div class="border border-gray-300 bg-white rounded p-2 cursor-pointer hover:border-gray-400">
+<div class="aspect-[3/4] bg-gray-200 rounded mb-1"></div>
+<p class="text-xs text-center text-gray-600">Page 4</p>
+</div>
+</div>
+</div>
+<!-- Document Display Area -->
+<div class="flex-1 p-6 overflow-auto bg-gray-100">
+<div class="max-w-4xl mx-auto">
+<div class="bg-white shadow-lg rounded" id="documentPage">
+<div class="aspect-[3/4] bg-white rounded p-8">
+<div class="h-full flex flex-col">
+<div class="text-center mb-6">
+<h1 class="text-xl font-bold text-gray-900 mb-2">HIGH COURT OF DELHI</h1>
+<p class="text-sm text-gray-600">Civil Appeal No. CA/2024/1247</p>
+</div>
+<div class="flex-1 space-y-4 text-sm text-gray-800">
+<div class="text-center">
+<p class="font-semibold">RAJESH KUMAR SHARMA</p>
+<p class="text-xs text-gray-600">Appellant</p>
+<p class="my-2">Vs.</p>
+<p class="font-semibold">STATE OF DELHI & ANR.</p>
+<p class="text-xs text-gray-600">Respondents</p>
+</div>
+<div class="border-t pt-4">
+<p class="font-semibold mb-2">ORDER</p>
+<p class="leading-relaxed">This matter came up for hearing today. The learned counsel for the appellant submitted that the impugned order passed by the Additional District Judge is contrary to the established principles of law and the same deserves to be set aside.</p>
+<p class="leading-relaxed mt-2">After hearing the learned counsel for the parties and perusing the record, this Court is of the opinion that the matter requires detailed consideration.</p>
+<p class="leading-relaxed mt-2">List the matter for final hearing on 22nd August, 2024.</p>
+</div>
+<div class="border-t pt-4 text-right">
+<p class="font-semibold">Justice A.K. Mendiratta</p>
+<p class="text-xs text-gray-600">10th August, 2024</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script id="captcha-functionality">
+function generateCaptcha() {
+const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+let captcha = '';
+for (let i = 0; i < 6; i++) {
+captcha += chars[Math.floor(Math.random() * chars.length)];
+}
+return captcha;
+}
+
+function refreshCaptcha() {
+const captchaCode = generateCaptcha();
+const captchaElement = document.getElementById('captchaCode');
+if (captchaElement) {
+captchaElement.textContent = captchaCode;
+}
+document.getElementById('captchaInput').value = '';
+}
+
+function validateForm(event) {
+event.preventDefault();
+const captchaInput = document.getElementById('captchaInput').value.toUpperCase();
+const captchaCode = document.getElementById('captchaCode').textContent;
+
+if (captchaInput === captchaCode) {
+event.target.closest('form').submit();
+} else {
+const notification = document.createElement('div');
+notification.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded';
+notification.innerHTML = `
+<div class="flex items-center">
+<i class="ri-error-warning-line mr-2"></i>
+<span>Invalid verification code. Please try again.</span>
+</div>
+`;
+document.body.appendChild(notification);
+setTimeout(() => notification.remove(), 3000);
+refreshCaptcha();
+}
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+refreshCaptcha();
+});
+</script>
+
+<script id="dropdown-functionality">
+function toggleDropdown(dropdownId) {
+const dropdown = document.getElementById(dropdownId);
+const allDropdowns = document.querySelectorAll('[id$="Dropdown"]');
+allDropdowns.forEach(d => {
+if (d.id !== dropdownId) {
+d.classList.add('hidden');
+}
+});
+dropdown.classList.toggle('hidden');
+}
+function selectOption(selectedId, value, dropdownId) {
+document.getElementById(selectedId).textContent = value;
+document.getElementById(dropdownId).classList.add('hidden');
+}
+document.addEventListener('click', function(event) {
+const dropdowns = document.querySelectorAll('[id$="Dropdown"]');
+const buttons = document.querySelectorAll('[onclick*="toggleDropdown"]');
+let isClickOnButton = false;
+buttons.forEach(button => {
+if (button.contains(event.target)) {
+isClickOnButton = true;
+}
+});
+if (!isClickOnButton) {
+dropdowns.forEach(dropdown => {
+if (!dropdown.contains(event.target)) {
+dropdown.classList.add('hidden');
+}
+});
+}
+});
+</script>
+<script id="document-viewer">
+let currentPage = 1;
+let totalPages = 12;
+let currentZoom = 100;
+let currentRotation = 0;
+function viewDocument(filename) {
+document.getElementById('documentViewer').classList.remove('hidden');
+document.getElementById('documentTitle').textContent = filename;
+updateDocumentInfo();
+document.getElementById('documentViewer').scrollIntoView({ behavior: 'smooth' });
+}
+function closeViewer() {
+document.getElementById('documentViewer').classList.add('hidden');
+}
+function updateDocumentInfo() {
+document.getElementById('documentInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+document.getElementById('pageInput').value = currentPage;
+}
+function zoomIn() {
+if (currentZoom < 200) {
+currentZoom += 25;
+document.getElementById('zoomLevel').textContent = currentZoom + '%';
+updateDocumentScale();
+}
+}
+function zoomOut() {
+if (currentZoom > 50) {
+currentZoom -= 25;
+document.getElementById('zoomLevel').textContent = currentZoom + '%';
+updateDocumentScale();
+}
+}
+function updateDocumentScale() {
+const page = document.getElementById('documentPage');
+page.style.transform = `scale(${currentZoom / 100}) rotate(${currentRotation}deg)`;
+}
+function fitToWidth() {
+currentZoom = 100;
+document.getElementById('zoomLevel').textContent = currentZoom + '%';
+updateDocumentScale();
+}
+function fitToPage() {
+currentZoom = 75;
+document.getElementById('zoomLevel').textContent = currentZoom + '%';
+updateDocumentScale();
+}
+function previousPage() {
+if (currentPage > 1) {
+currentPage--;
+updateDocumentInfo();
+updateThumbnailSelection();
+}
+}
+function nextPage() {
+if (currentPage < totalPages) {
+currentPage++;
+updateDocumentInfo();
+updateThumbnailSelection();
+}
+}
+function goToPage() {
+const pageInput = document.getElementById('pageInput');
+const page = parseInt(pageInput.value);
+if (page >= 1 && page <= totalPages) {
+currentPage = page;
+updateDocumentInfo();
+updateThumbnailSelection();
+} else {
+pageInput.value = currentPage;
+}
+}
+function rotateLeft() {
+currentRotation -= 90;
+updateDocumentScale();
+}
+function rotateRight() {
+currentRotation += 90;
+updateDocumentScale();
+}
+function updateThumbnailSelection() {
+const thumbnails = document.querySelectorAll('#thumbnailSidebar > div > div');
+thumbnails.forEach((thumb, index) => {
+if (index + 1 === currentPage) {
+thumb.classList.remove('border-gray-300', 'hover:border-gray-400');
+thumb.classList.add('border-2', 'border-primary');
+} else {
+thumb.classList.remove('border-2', 'border-primary');
+thumb.classList.add('border', 'border-gray-300', 'hover:border-gray-400');
+}
+});
+}
+</script>
+</body>
+</html>
